@@ -541,12 +541,18 @@ params   = _params;
     
     _modalBackgroundView.frame = window.frame;
     [_modalBackgroundView addSubview:self];
+    
+    float   angle = M_PI / 2.f;  //rotate 180°, or 1 π radians
+    _modalBackgroundView.layer.transform = CATransform3DMakeRotation(angle, 0, 0.0, 1.0);
+    
     [window addSubview:_modalBackgroundView];
     
     [window addSubview:self];
     
     [self dialogWillAppear];
-    
+
+    // this doesn't work anymore on iOS 9...
+    /*
     self.transform = CGAffineTransformScale([self transformForOrientation], 0.001, 0.001);
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:kTransitionDuration/1.5];
@@ -554,7 +560,7 @@ params   = _params;
     [UIView setAnimationDidStopSelector:@selector(bounce1AnimationStopped)];
     self.transform = CGAffineTransformScale([self transformForOrientation], 1.1, 1.1);
     [UIView commitAnimations];
-    
+    */
     [self addObservers];
 }
 
