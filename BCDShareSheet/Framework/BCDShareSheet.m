@@ -123,17 +123,23 @@ typedef void (^CompletionBlock)(BCDResult);
     
     int selectedService = [[[self.availableSharingServices objectAtIndex:buttonIndex] valueForKey:kServiceKey] intValue];
     
+    __block __typeof__(self) weakSelf = self;
+    
     switch (selectedService) {
         case BCDEmailService:
-            [self shareViaEmail];
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [weakSelf shareViaEmail];
+            });
             break;
             
         case BCDFacebookService:
-            [self shareViaFacebook];
+            [weakSelf shareViaFacebook];
             break;
             
         case BCDTwitterService:
-            [self shareViaTwitter];
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [weakSelf shareViaTwitter];
+            });
             break;
             
         default:
@@ -150,15 +156,15 @@ typedef void (^CompletionBlock)(BCDResult);
                         error:(NSError*)error {
     [self.rootViewController dismissModalViewControllerAnimated:YES];
                             
-                            if (error!=nil) {
-                                if (self.completionBlock!=nil) {
-                                    self.completionBlock(BCDResultFailure);
-                                }
-                            } else {
-                                if (self.completionBlock!=nil) {
-                                    self.completionBlock(BCDResultSuccess);
-                                }
-                            }
+    if (error!=nil) {
+        if (self.completionBlock!=nil) {
+            self.completionBlock(BCDResultFailure);
+        }
+    } else {
+        if (self.completionBlock!=nil) {
+            self.completionBlock(BCDResultSuccess);
+        }
+    }
 }
 
 
@@ -234,7 +240,9 @@ typedef void (^CompletionBlock)(BCDResult);
     }
     
     [mailComposeViewController setMessageBody:body isHTML:NO];
-    [self.rootViewController presentModalViewController:mailComposeViewController animated:YES];
+
+    [self.rootViewController presentViewController:mailComposeViewController animated:YES completion:nil];
+
     [mailComposeViewController release];
 }
 
@@ -335,6 +343,8 @@ typedef void (^CompletionBlock)(BCDResult);
     TWTweetComposeViewController *tweetComposeViewController = [[TWTweetComposeViewController alloc] init];
     [tweetComposeViewController setInitialText:tweetText];
     [tweetComposeViewController addURL:[NSURL URLWithString:self.item.itemURLString]];
+    tweetComposeViewController.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    
     [self.rootViewController presentModalViewController:tweetComposeViewController animated:YES];
     
     [tweetComposeViewController setCompletionHandler:^(TWTweetComposeViewControllerResult result) {
@@ -356,10 +366,6 @@ typedef void (^CompletionBlock)(BCDResult);
                 }
                 break;
         }
-        
-        dispatch_async(dispatch_get_main_queue(), ^{            
-            [self.rootViewController dismissViewControllerAnimated:NO completion:nil];
-        });
     }];
     
     [tweetComposeViewController release];
