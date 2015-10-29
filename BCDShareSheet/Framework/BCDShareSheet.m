@@ -133,7 +133,9 @@ typedef void (^CompletionBlock)(BCDResult);
             break;
             
         case BCDFacebookService:
-            [weakSelf shareViaFacebook];
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [weakSelf shareViaFacebook];
+            });
             break;
             
         case BCDTwitterService:
@@ -299,7 +301,7 @@ typedef void (^CompletionBlock)(BCDResult);
     if (self.item.itemURLString!=nil) {
         [params setValue:self.item.itemURLString forKey:@"link"];
     }
-    [self.facebook dialog:@"feed" andParams:params andDelegate:self];
+    [self.facebook dialog:@"feed" andParams:params andDelegate:self andParent:self.rootViewController];
 }
     
 

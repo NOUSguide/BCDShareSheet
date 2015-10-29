@@ -587,9 +587,10 @@ static void *finishedContext = @"finishedContext";
  *            dialog has completed.
  */
 - (void)dialog:(NSString *)action
-   andDelegate:(id<FBDialogDelegate>)delegate {
+   andDelegate:(id<FBDialogDelegate>)delegate
+     andParent:(UIViewController *)parent{
   NSMutableDictionary * params = [NSMutableDictionary dictionary];
-  [self dialog:action andParams:params andDelegate:delegate];
+  [self dialog:action andParams:params andDelegate:delegate andParent:parent];
 }
 
 /**
@@ -606,7 +607,8 @@ static void *finishedContext = @"finishedContext";
  */
 - (void)dialog:(NSString *)action
      andParams:(NSMutableDictionary *)params
-   andDelegate:(id <FBDialogDelegate>)delegate {
+   andDelegate:(id <FBDialogDelegate>)delegate
+     andParent:(UIViewController *)parent {
 
   [_fbDialog release];
 
@@ -627,7 +629,7 @@ static void *finishedContext = @"finishedContext";
     _fbDialog = [[FBDialog alloc] initWithURL:dialogURL params:params delegate:delegate];
   }
 
-  [_fbDialog show];
+    [_fbDialog show:parent];
 }
 
 /**

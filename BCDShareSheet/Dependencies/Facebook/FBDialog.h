@@ -35,6 +35,7 @@
   UIButton* _closeButton;
   UIInterfaceOrientation _orientation;
   BOOL _showingKeyboard;
+  UIViewController *containerViewController;
 
   // Ensures that UI elements behind the dialog are disabled.
   UIView* _modalBackgroundView;
@@ -61,7 +62,7 @@
  *
  * The view will be added to the top of the current key window.
  */
-- (void)show;
+- (void)show:(UIViewController *)parent;
 
 /**
  * Displays the first page of the dialog.

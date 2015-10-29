@@ -76,11 +76,13 @@
                        andDelegate:(id <FBRequestDelegate>)delegate;
 
 - (void)dialog:(NSString *)action
-   andDelegate:(id<FBDialogDelegate>)delegate;
+   andDelegate:(id<FBDialogDelegate>)delegate
+     andParent:(UIViewController *)parent;
 
 - (void)dialog:(NSString *)action
      andParams:(NSMutableDictionary *)params
-   andDelegate:(id <FBDialogDelegate>)delegate;
+   andDelegate:(id <FBDialogDelegate>)delegate
+     andParent:(UIViewController *)parent;
 
 - (BOOL)isSessionValid;
 

@@ -17,6 +17,7 @@
 
 #import "FBDialog.h"
 #import "Facebook.h"
+#import "BCDFacebookContainerViewController.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // global
@@ -133,9 +134,7 @@ params   = _params;
     if (orientation == _orientation) {
         return NO;
     } else {
-        return orientation == UIInterfaceOrientationPortrait
-        || orientation == UIInterfaceOrientationPortraitUpsideDown
-        || orientation == UIInterfaceOrientationLandscapeLeft
+        return orientation == UIInterfaceOrientationLandscapeLeft
         || orientation == UIInterfaceOrientationLandscapeRight;
     }
 }
@@ -144,12 +143,8 @@ params   = _params;
     UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
     if (orientation == UIInterfaceOrientationLandscapeLeft) {
         return CGAffineTransformMakeRotation(M_PI*1.5);
-    } else if (orientation == UIInterfaceOrientationLandscapeRight) {
-        return CGAffineTransformMakeRotation(M_PI/2);
-    } else if (orientation == UIInterfaceOrientationPortraitUpsideDown) {
-        return CGAffineTransformMakeRotation(-M_PI);
     } else {
-        return CGAffineTransformIdentity;
+        return CGAffineTransformMakeRotation(M_PI/2);
     }
 }
 
@@ -169,8 +164,8 @@ params   = _params;
         scale_factor = 0.6f;
     }
     
-    CGFloat width = floor(scale_factor * frame.size.width) - kPadding * 2;
-    CGFloat height = floor(scale_factor * frame.size.height) - kPadding * 2;
+    CGFloat width = 480;// floor(scale_factor * frame.size.width) - kPadding * 2;
+    CGFloat height = 240; //floor(scale_factor * frame.size.height) - kPadding * 2;
     
     _orientation = [UIApplication sharedApplication].statusBarOrientation;
     if (UIInterfaceOrientationIsLandscape(_orientation)) {
@@ -264,6 +259,9 @@ params   = _params;
 - (void)dismiss:(BOOL)animated {
     [self dialogWillDisappear];
     
+    [containerViewController dismissViewControllerAnimated:animated completion:nil];
+    [containerViewController release];
+    
     [_loadingURL release];
     _loadingURL = nil;
     
@@ -297,7 +295,7 @@ params   = _params;
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         self.contentMode = UIViewContentModeRedraw;
         
-        _webView = [[UIWebView alloc] initWithFrame:CGRectMake(kPadding, kPadding, 480, 480)];
+        _webView = [[UIWebView alloc] initWithFrame:CGRectMake(kPadding, kPadding, 480, 240)];
         _webView.delegate = self;
         _webView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [self addSubview:_webView];
@@ -418,7 +416,8 @@ params   = _params;
 // UIDeviceOrientationDidChangeNotification
 
 - (void)deviceOrientationDidChange:(void*)object {
-    UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+    /*
+     UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
     if (!_showingKeyboard && [self shouldRotateToOrientation:orientation]) {
         [self updateWebOrientation];
         
@@ -428,6 +427,7 @@ params   = _params;
         [self sizeToFitOrientation:YES];
         [UIView commitAnimations];
     }
+     */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -511,9 +511,13 @@ params   = _params;
     [_webView loadRequest:request];
 }
 
-- (void)show {
+- (void)show:(UIViewController *)parent {
     [self load];
-    [self sizeToFitOrientation:NO];
+    //[self sizeToFitOrientation:NO];
+    
+    CGFloat width = 480;
+    CGFloat height = FBIsDeviceIPad() ? 320 : 240;
+    self.frame = CGRectMake(0, 0, width, height);
     
     CGFloat innerWidth = self.frame.size.width - (kBorderWidth+1)*2;
     [_closeButton sizeToFit];
@@ -528,40 +532,29 @@ params   = _params;
                                 kBorderWidth+1,
                                 kBorderWidth+1,
                                 innerWidth,
-                                self.frame.size.height - (1 + kBorderWidth*2));
+                                height - (1 + kBorderWidth*2));
     
     [_spinner sizeToFit];
-    [_spinner startAnimating];
-    _spinner.center = _webView.center;
     
-    UIWindow* window = [UIApplication sharedApplication].keyWindow;
-    if (!window) {
-        window = [[UIApplication sharedApplication].windows objectAtIndex:0];
-    }
-    
-    _modalBackgroundView.frame = window.frame;
+    _modalBackgroundView.frame = CGRectMake((parent.view.frame.size.width - width) / 2.f, (parent.view.frame.size.height - height) / 2.f, 480, height);
     [_modalBackgroundView addSubview:self];
-    
-    float   angle = M_PI / 2.f;  //rotate 180°, or 1 π radians
-    _modalBackgroundView.layer.transform = CATransform3DMakeRotation(angle, 0, 0.0, 1.0);
-    
-    [window addSubview:_modalBackgroundView];
-    
-    [window addSubview:self];
     
     [self dialogWillAppear];
 
-    // this doesn't work anymore on iOS 9...
-    /*
-    self.transform = CGAffineTransformScale([self transformForOrientation], 0.001, 0.001);
-    [UIView beginAnimations:nil context:nil];
-    [UIView setAnimationDuration:kTransitionDuration/1.5];
-    [UIView setAnimationDelegate:self];
-    [UIView setAnimationDidStopSelector:@selector(bounce1AnimationStopped)];
-    self.transform = CGAffineTransformScale([self transformForOrientation], 1.1, 1.1);
-    [UIView commitAnimations];
-    */
     [self addObservers];
+    
+    [containerViewController release];
+    
+    containerViewController = [[[BCDFacebookContainerViewController alloc] init] retain];
+    containerViewController.view = [[UIView alloc] initWithFrame:self.frame];
+    [containerViewController.view addSubview:_modalBackgroundView];
+   // [containerViewController.view addSubview:self];
+    
+    containerViewController.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    
+    [parent presentViewController:containerViewController animated:YES completion:nil];
+    
+    [containerViewController release];
 }
 
 - (void)dismissWithSuccess:(BOOL)success animated:(BOOL)animated {
