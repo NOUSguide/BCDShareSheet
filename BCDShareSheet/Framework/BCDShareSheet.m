@@ -121,6 +121,12 @@ typedef void (^CompletionBlock)(BCDResult);
         return;
     }
     
+    // send event when a sharing button has been clicked
+    if (self.completionBlock != nil) {
+        self.completionBlock(BCDResultOpening);
+    }
+    [actionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
+    
     int selectedService = [[[self.availableSharingServices objectAtIndex:buttonIndex] valueForKey:kServiceKey] intValue];
     
     __block __typeof__(self) weakSelf = self;

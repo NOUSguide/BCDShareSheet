@@ -9,7 +9,8 @@
 typedef enum {
 	BCDResultSuccess,
     BCDResultFailure,
-    BCDResultCancel
+    BCDResultCancel,
+    BCDResultOpening
 } BCDResult;
 
 #import <Foundation/Foundation.h>
